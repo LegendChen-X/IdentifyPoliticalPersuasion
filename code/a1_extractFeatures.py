@@ -26,6 +26,18 @@ SLANG = {
     'ppl', 'sob', 'ttyl', 'imo', 'ltr', 'thx', 'kk', 'omg', 'omfg', 'ttys',
     'afn', 'bbs', 'cya', 'ez', 'f2f', 'gtr', 'ic', 'jk', 'k', 'ly', 'ya',
     'nm', 'np', 'plz', 'ru', 'so', 'tc', 'tmi', 'ym', 'ur', 'u', 'sol', 'fml'}
+    
+    
+def readFile(path):
+    with open(path, "r") as ouf: lines = ouf.read().splitlines()
+    return lines
+    
+path = "./../feats/"
+    
+altFeats = np.load(path + "Alt_feats.dat.npy")
+centerFeats = np.load(path + "Center_feats.dat.npy")
+leftFeats = np.load(path + "Left_feats.dat.npy")
+rightFeats = np.load(path + "Right_feats.dat.npy")
 
 
 def extract1(comment):
@@ -38,9 +50,12 @@ def extract1(comment):
         feats : numpy Array, a 173-length vector of floating point features (only the first 29 are expected to be filled, here)
     '''    
     # TODO: Extract features that rely on capitalization.
+    features = np.zeros(173)
+    body = re.compile("(\S+)/(?=\S+)").findall(comment)
+    lemma = re.compile("(?<=\S)/(\S+)").findall(comment)
     # TODO: Lowercase the text in comment. Be careful not to lowercase the tags. (e.g. "Dog/NN" -> "dog/NN").
     # TODO: Extract features that do not rely on capitalization.
-    print('TODO')
+    
     
     
 def extract2(feat, comment_class, comment_id):
@@ -55,7 +70,16 @@ def extract2(feat, comment_class, comment_id):
         feat : numpy Array, a 173-length vector of floating point features (this 
         function adds feature 30-173). This should be a modified version of 
         the parameter feats.
-    '''    
+    '''
+    if comment_class == "Alt": feats[29:173] = alt_feats[alt_IDs.index(comment_id)]
+        
+    elif comment_class == "Center":
+        
+    elif comment_class == "Left":
+        
+    elif comment_class == "Right":
+        
+    return feats
     print('TODO')
 
 
@@ -71,7 +95,8 @@ def main(args):
     # TODO: Call extract2 for each feature vector to copy LIWC features (features 30-173)
     # into feats. (Note that these rely on each data point's class,
     # which is why we can't add them in extract1).
-    print('TODO')
+    
+    for i in range()
 
     np.savez_compressed(args.output, feats)
 

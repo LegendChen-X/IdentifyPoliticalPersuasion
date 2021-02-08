@@ -80,7 +80,6 @@ def main(args):
 
             # TODO: select appropriate args.max lines
             start = args.ID[0] % len(data)
-            print("Start number is", start)
             end = args.max + start
             # TODO: read those lines with something like `j = json.loads(line)`
             for i in range(start, end):
