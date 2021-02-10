@@ -19,7 +19,8 @@ from sklearn.metrics import confusion_matrix
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPClassifier
 from sklearn.naive_bayes import GaussianNB
-from sklearn.linear_model import SGDClassifier  
+from sklearn.linear_model import SGDClassifier
+from sklearn.model_selection import KFold
 
 # set the random state for reproducibility 
 import numpy as np
@@ -82,7 +83,7 @@ def class31(output_dir, X_train, X_test, y_train, y_test):
         #     outf.write(f'\tConfusion Matrix: \n{conf_matrix}\n\n')
         for model in outputs:
             outf.write(f'Results for {model}:\n')
-            outf.write(f'\tAccuracy: {outputs[model][0]:.4f}\n')
+            outf.write(f'\tAccuracy: {outputs[model][1]:.4f}\n')
             outf.write(f'\tRecall: {[round(item, 4) for item in outputs[model][2]]}\n')
             outf.write(f'\tPrecision: {[round(item, 4) for item in outputs[model][3]]}\n')
             outf.write(f'\tConfusion Matrix: \n{outputs[model][0]}\n\n')
@@ -130,7 +131,7 @@ def class32(output_dir, X_train, X_test, y_train, y_test, iBest):
         # the following output:
         #     outf.write(f'{num_train}: {accuracy:.4f}\n'))
         for i in range(len(sizes)):
-            outf.write(f'{sizes[i]}: {accs[i]:.4f}\n'))
+            outf.write(f'{sizes[i]}: {accs[i]:.4f}\n')
             
     X_1k = X_train[:1000]
     y_1k = y_train[:1000]
@@ -179,14 +180,33 @@ def class33(output_dir, X_train, X_test, y_train, y_test, i, X_1k, y_1k):
             X_new = selector.fit_transform(X_train, y_train)
             pp = selector.pvalues_
             kPP[k] = pp
-            if k==5:
-                X_new = selector.fit_transform(X_1k, y_1k)
-                X_new_test = selector.transform(X_test)
-                bestModel.fit(X_new, y_1k)
-                prediction = bestModel.predict(X_new_test)
-                acc_1 = accuracy(confusion_matrix(y_test, prediction))
-                
-
+            
+        selector_1k = SelectKBest(f_classif, k=5)
+        X_new = selector_1k.fit_transform(X_1k, y_1k)
+        X_new_test = selector_1k.transform(X_test)
+        bestModel.fit(X_new, y_1k)
+        prediction = bestModel.predict(X_new_test)
+        accuracy_1k = accuracy(confusion_matrix(y_test, prediction))
+        
+        selector_32k = SelectKBest(f_classif, k=5)
+        X_new = selector_32k.fit_transform(X_train, y_train)
+        X_new_test = selector_32k.transform(X_test)
+        prediction = bestModel.predict(X_new_test)
+        accuracy_full = accuracy(confusion_matrix(y_test, prediction))
+        
+        pp_1k = np.array(selector_1k.pvalues_)
+        pp_32k = np.array(selector_32k.pvalues_)
+        
+        indices_1k = np.argpartition(pp_1k, 5)
+        indices_32k = np.argpartition(pp_32k, 5)
+        feature_intersection = np.intersect1d(indices_1k[:5], indices_32k[:5])
+        
+        for k in [5, 50]:
+            outf.write(f'{k} p-values: {[round(pval, 4) for pval in kPP[k]]}\n')
+        outf.write(f'Accuracy for 1k: {accuracy_1k:.4f}\n')
+        outf.write(f'Accuracy for full dataset: {accuracy_full:.4f}\n')
+        outf.write(f'Chosen feature intersection: {feature_intersection}\n')
+        outf.write(f'Top-5 at higher: {indices_32k[:5]}\n')
 
 def class34(output_dir, X_train, X_test, y_train, y_test, i):
     ''' This function performs experiment 3.4
@@ -199,12 +219,12 @@ def class34(output_dir, X_train, X_test, y_train, y_test, i):
        y_test: NumPy array, with the selected testing classes
        i: int, the index of the supposed best classifier (from task 3.1)  
         '''
-    kFlods = KFold(n_splits=5, ,shuffle=True, random_state=401)
+    kFlods = KFold(n_splits=5, shuffle=True, random_state=401)
     X = np.vstack((X_train, X_test))
     y = np.concatenate((y_train, y_test), axis=0)
     accs = {}
     for j in range(5): accs[j] = []
-    for train, test in kfold.split(X):
+    for train, test in kFlods.split(X):
         X_train = X[train]
         X_test = X[test]
         y_train = y[train]
@@ -226,7 +246,7 @@ def class34(output_dir, X_train, X_test, y_train, y_test, i):
     for j in range(5): meanAccs.append(sum(accs[j])/len(accs[j]))
     pVals = []
     for key in accs:
-        if key != i: pVals.append(ttest_rel(accs[key], accs[i]))
+        if key != i: pVals.append(ttest_rel(accs[key], accs[i]).pvalue)
     
     with open(f"{output_dir}/a1_3.4.txt", "w") as outf:
         # Prepare kfold_accuracies, then uncomment this, so it writes them to outf.
@@ -256,6 +276,9 @@ if __name__ == "__main__":
     iBest = class31(args.output_dir, X_train, X_test, y_train, y_test)
     print("3.1 finish")
     (X_1k, y_1k) = class32(args.output_dir, X_train, X_test, y_train, y_test, iBest)
+    
     class33(args.output_dir, X_train, X_test, y_train, y_test, iBest, X_1k, y_1k)
+    
     class34(args.output_dir, X_train, X_test, y_train, y_test, iBest)
+    
     

@@ -29,18 +29,63 @@ SLANG = {
     'afn', 'bbs', 'cya', 'ez', 'f2f', 'gtr', 'ic', 'jk', 'k', 'ly', 'ya',
     'nm', 'np', 'plz', 'ru', 'so', 'tc', 'tmi', 'ym', 'ur', 'u', 'sol', 'fml'}
     
-BGLpath = "./../Wordlists/BristolNorms+GilhoolyLogie.csv"
-WARpath = "./../Wordlists/Ratings_Warriner_et_al.csv"
-altPathData = "./../feats/Alt_IDs.txt"
-leftPathData = "./../feats/Left_IDs.txt"
-rightPathData = "./../feats/Right_IDs.txt"
-centerPathData = "./../feats/Center_IDs.txt"
+CDF = 0
 
-altPathArray = "./../feats/Alt_feats.dat.npy"
-leftPathArray = "./../feats/Left_feats.dat.npy"
-rightPathArray = "./../feats/Right_feats.dat.npy"
-centerPathArray = "./../feats/Center_feats.dat.npy"
+if not CDF:
+    BGLpath = "./../Wordlists/BristolNorms+GilhoolyLogie.csv"
+    WARpath = "./../Wordlists/Ratings_Warriner_et_al.csv"
+    altPathData = "./../feats/Alt_IDs.txt"
+    leftPathData = "./../feats/Left_IDs.txt"
+    rightPathData = "./../feats/Right_IDs.txt"
+    centerPathData = "./../feats/Center_IDs.txt"
 
+    altPathArray = "./../feats/Alt_feats.dat.npy"
+    leftPathArray = "./../feats/Left_feats.dat.npy"
+    rightPathArray = "./../feats/Right_feats.dat.npy"
+    centerPathArray = "./../feats/Center_feats.dat.npy"
+
+
+altArray = np.load(altPathArray)
+leftArray = np.load(leftPathArray)
+rightArray = np.load(rightPathArray)
+centerArray = np.load(centerPathArray)
+altIDs = {}
+leftIDs = {}
+rightIDs = {}
+centerIDs= {}
+altFp = open(altPathData, "r")
+leftFp = open(leftPathData, "r")
+rightFp = open(rightPathData, "r")
+centerFp = open(centerPathData, "r")
+altData = altFp.read().split()
+altFp.close()
+leftData = leftFp.read().split()
+leftFp.close()
+rightData = rightFp.read().split()
+rightFp.close()
+centerData = centerFp.read().split()
+centerFp.close()
+
+for i in range(len(altData)): altIDs[altData[i]] = i
+for i in range(len(leftData)): leftIDs[leftData[i]] = i
+for i in range(len(rightData)): rightIDs[rightData[i]] = i
+for i in range(len(centerData)): centerIDs[centerData[i]] = i
+
+fp = open(BGLpath,"r")
+BGLdata = fp.read().split("\n")[1:-3]
+fp.close()
+BGL = {}
+for line in BGLdata:
+    element = line.split(",")
+    BGL[element[1]] = [element[3], element[4], element[5]]
+    
+fp = open(WARpath, "r")
+
+WARdata = fp.read().split('\n')[1:-1]
+WAR = {}
+for line in WARdata:
+    element = line.split(",")
+    WAR[element[1]] = [element[2], element[5], element[8]]
 
 def extract1(comment):
     ''' This function extracts features from a single comment
@@ -51,23 +96,6 @@ def extract1(comment):
     Returns:
         feats : numpy Array, a 173-length vector of floating point features (only the first 29 are expected to be filled, here)
     '''
-    fp = open(BGLpath,"r")
-    BGLdata = fp.read().split("\n")[1:-3]
-    fp.close()
-    BGL = {}
-    for line in BGLdata:
-        element = line.split(",")
-        BGL[element[1]] = [element[3], element[4], element[5]]
-        
-    fp = open(WARpath, "r")
-
-    WARdata = fp.read().split('\n')[1:-1]
-    WAR = {}
-    for line in WARdata:
-        element = line.split(",")
-        WAR[element[1]] = [element[2], element[5], element[8]]
-        
-        
     # TODO: Extract features that rely on capitalization.
     features = np.zeros(173)
     data = re.compile("(\S+)/(?=\S+)").findall(comment)
@@ -179,32 +207,6 @@ def extract2(feat, comment_class, comment_id):
         function adds feature 30-173). This should be a modified version of 
         the parameter feats.
     '''
-    
-    altArray = np.load(altPathArray)
-    leftArray = np.load(leftPathArray)
-    rightArray = np.load(rightPathArray)
-    centerArray = np.load(centerPathArray)
-    altIDs = {}
-    leftIDS = {}
-    rightIDs = {}
-    centerIDs= {}
-    altFp = open(altPathData, "r")
-    leftFp = open(leftPathData, "r")
-    rightFp = open(rightPathData, "r")
-    centerFp = open(centerPathData, "r")
-    altData = altFp.read().split()
-    altFp.close()
-    leftData = leftFp.read().split()
-    leftFp.close()
-    rightData = rightFp.read().split()
-    rightFp.close()
-    centerData = centerFp.read().split()
-    centerFp.close()
-    for i in range(len(altData)): altIDs[altData[i]] = i
-    for i in range(len(leftData)): leftIDS[leftData[i]] = i
-    for i in range(len(rightData)): rightIDs[rightData[i]] = i
-    for i in range(len(centerData)): centerIDs[centerData[i]] = i
-    
     if comment_class == "Alt": feat = np.append(feat[:29], altArray[altIDs[comment_id]])
         
     elif comment_class == "Left": feat = np.append(feat[:29], leftArray[leftIDs[comment_id]])
@@ -237,8 +239,8 @@ def main(args):
         elif data[i]["cat"] == "Alt": feats[i][-1] = 3
         res = extract2(res, data[i]["cat"], data[i]['id'])
         feats[i,:-1] = res
-    
-
+        
+    feats = np.nan_to_num(feats)
     np.savez_compressed(args.output, feats)
 
     
