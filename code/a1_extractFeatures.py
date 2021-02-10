@@ -38,13 +38,22 @@ if not CDF:
     leftPathData = "./../feats/Left_IDs.txt"
     rightPathData = "./../feats/Right_IDs.txt"
     centerPathData = "./../feats/Center_IDs.txt"
-
     altPathArray = "./../feats/Alt_feats.dat.npy"
     leftPathArray = "./../feats/Left_feats.dat.npy"
     rightPathArray = "./../feats/Right_feats.dat.npy"
     centerPathArray = "./../feats/Center_feats.dat.npy"
-
-
+else:
+    BGLpath = "/u/cs401/Wordlists/BristolNorms+GilhoolyLogie.csv"
+    WARpath = "/u/cs401/Wordlists/Ratings_Warriner_et_al.csv"
+    altPathData = "/u/cs401/A1/feats/Alt_IDs.txt"
+    leftPathData = "/u/cs401/A1/feats/Left_IDs.txt"
+    rightPathData = "/u/cs401/A1/feats/Right_IDs.txt"
+    centerPathData = "/u/cs401/A1/feats/Center_IDs.txt"
+    altPathArray = "/u/cs401/A1/feats/Alt_feats.dat.npy"
+    leftPathArray = "/u/cs401/A1/feats/Left_feats.dat.npy"
+    rightPathArray = "/u/cs401/A1/feats/Right_feats.dat.npy"
+    centerPathArray = "/u/cs401/A1/feats/Center_feats.dat.npy"
+    
 altArray = np.load(altPathArray)
 leftArray = np.load(leftPathArray)
 rightArray = np.load(rightPathArray)
