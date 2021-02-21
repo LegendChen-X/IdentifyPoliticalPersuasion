@@ -29,7 +29,7 @@ SLANG = {
     'afn', 'bbs', 'cya', 'ez', 'f2f', 'gtr', 'ic', 'jk', 'k', 'ly', 'ya',
     'nm', 'np', 'plz', 'ru', 'so', 'tc', 'tmi', 'ym', 'ur', 'u', 'sol', 'fml'}
     
-CDF = 0
+CDF = 1
 
 if not CDF:
     BGLpath = "./../Wordlists/BristolNorms+GilhoolyLogie.csv"

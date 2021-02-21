@@ -42,7 +42,6 @@ def recall(C):
     return res
             
 
-
 def precision(C):
     ''' Compute precision given Numpy array confusion matrix C. Returns a list of floating point values '''
     res = []
@@ -110,7 +109,6 @@ def class32(output_dir, X_train, X_test, y_train, y_test, iBest):
        X_1k: numPy array, just 1K rows of X_train
        y_1k: numPy array, just 1K rows of y_train
     '''
-   
     sizes = [1000, 5000, 10000, 15000, 20000]
     accs = []
     bestModel = None
@@ -132,6 +130,9 @@ def class32(output_dir, X_train, X_test, y_train, y_test, iBest):
         #     outf.write(f'{num_train}: {accuracy:.4f}\n'))
         for i in range(len(sizes)):
             outf.write(f'{sizes[i]}: {accs[i]:.4f}\n')
+        outf.write("According to my output, the number of training sample has a positive impact to the"
+                    "accuracy. Intuitively, more training data can absolutly increase the accuracy of our model, since our model will have more data and avoid the problem of underfit. We can see initially the increase is significant and we increase the training number from 15000 to 20000, it has low improvement. I think this is beacuse data has a high variance and our model has achieve its convergence line. We may need more complicated architecture to capture the hidden features."
+                    )
             
     X_1k = X_train[:1000]
     y_1k = y_train[:1000]
@@ -201,12 +202,16 @@ def class33(output_dir, X_train, X_test, y_train, y_test, i, X_1k, y_1k):
         indices_32k = np.argpartition(pp_32k, 5)
         feature_intersection = np.intersect1d(indices_1k[:5], indices_32k[:5])
         
+        interList = []
+        for element in feature_intersection: interList.append(element)
+        
         for k in [5, 50]:
             outf.write(f'{k} p-values: {[round(pval, 4) for pval in kPP[k]]}\n')
         outf.write(f'Accuracy for 1k: {accuracy_1k:.4f}\n')
         outf.write(f'Accuracy for full dataset: {accuracy_full:.4f}\n')
-        outf.write(f'Chosen feature intersection: {feature_intersection}\n')
-        outf.write(f'Top-5 at higher: {indices_32k[:5]}\n')
+        outf.write(f'Chosen feature intersection: {interList}\n')
+        outf.write(f'Top-5 at higher: {indices_32k[:5].tolist()}\n')
+        outf.write("The top 5 features for 1K set and 32K set are the same according to my output. They are  Number of first-person pronouns, Number of second-person pronouns, Number of adverbs and two from LIWC/Receptiviti features. I think the number of first-person pronouns can help us identify the subjective level of one comment and the number of second-person pronouns can help us identify the interactive level of one comment. Follow the intuition, feaures from LIWC/Receptiviti are useful to determine the semantic of that text. Since for each division, it will have its own way in semantic meaning. Pvalues are generally the same. If we round it to 4 decimals, it has no difference. Follow my intuition, a low p-value means that specific feature separate the dataset. If we have a large dataset, it will be really hard to separate. Therefore, we should have a high p value")
 
 def class34(output_dir, X_train, X_test, y_train, y_test, i):
     ''' This function performs experiment 3.4
@@ -242,8 +247,6 @@ def class34(output_dir, X_train, X_test, y_train, y_test, i):
             acc = accuracy(confusion_matrix(y_test, prediction))
             accs[j].append(acc)
             
-    meanAccs = []
-    for j in range(5): meanAccs.append(sum(accs[j])/len(accs[j]))
     pVals = []
     for key in accs:
         if key != i: pVals.append(ttest_rel(accs[key], accs[i]).pvalue)
@@ -275,10 +278,13 @@ if __name__ == "__main__":
     print("3.1 begin")
     iBest = class31(args.output_dir, X_train, X_test, y_train, y_test)
     print("3.1 finish")
+    print("3.2 begin")
     (X_1k, y_1k) = class32(args.output_dir, X_train, X_test, y_train, y_test, iBest)
-    
+    print("3.2 finish")
+    print("3.3 begin")
     class33(args.output_dir, X_train, X_test, y_train, y_test, iBest, X_1k, y_1k)
-    
+    print("3.3 finish")
+    print("3.4 begin")
     class34(args.output_dir, X_train, X_test, y_train, y_test, iBest)
-    
+    print("3.4 finish")
     

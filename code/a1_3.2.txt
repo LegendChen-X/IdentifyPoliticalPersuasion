@@ -1,0 +1,6 @@
+1000: 0.3999
+5000: 0.4411
+10000: 0.4464
+15000: 0.4572
+20000: 0.4627
+According to my output, the number of training sample has a positive impact to theaccuracy. Intuitively, more training data can absolutly increase the accuracy of our model, since our model will have more data and avoid the problem of underfit. We can see initially the increase is significant and we increase the training number from 15000 to 20000, it has low improvement. I think this is beacuse data has a high variance and our model has achieve its convergence line. We may need more complicated architecture to capture the hidden features.
